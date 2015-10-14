@@ -5,7 +5,7 @@ HOST = 'irc.twitch.tv'
 PORT = 6667
 NICK = 'sjaoudi'
 PASS = 'oauth:03nj467om5d8sm9dgrllor2a97zie4'
-CHAN = '#tsm_theoddone'
+CHAN = '#syndicate'
 
 s = socket.socket()
 s.connect((HOST, PORT))
@@ -28,7 +28,8 @@ while True:
         message = CHAT_MSG.sub('', response)
 
         blob = TextBlob(message)
-        print(message, blob.sentences[0].sentiment)
-        # print(blob.sentences[0].sentiment)
 
-        # print(message)
+        #for sentence in blob.sentences:
+        #    print(sentence, sentence.sentiment)
+
+        print(message)
