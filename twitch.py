@@ -2,7 +2,8 @@ import socket, string, time, nltk, re, requests
 import json, pprint
 from nltk.corpus import stopwords 
 import time
-
+from datetime import datetime
+from collections import deque
 
 def checkIfLive(channel):
     apiUrl = "https://api.twitch.tv/kraken/streams/%s" % channel        
@@ -90,7 +91,22 @@ def checkIfLive(channel):
     r = requests.get(apiUrl)  
     content = json.loads(r.content)
     print content['stream'] 
-    exit() 
+    exit()
+
+def appendTdelta(tdelta, tdeltas, tdeltasCapacity):
+    if len(tdeltas) < tdeltasCapacity:
+        tdeltas.append(tdelta)
+    else:
+        tdeltas.rotate()
+        tdeltas[0] = tdelta
+
+def calcAvgTdelta(tdeltas):
+    sum = 0
+    for tdelta in tdeltas:
+        sum += tdelta.microseconds
+    
+    avgTdelta = sum/len(tdeltas)
+    return avgTdelta
 
 
 hypeWords = getWordsFromMessages(importMessages('hype.txt','hype'))
@@ -108,11 +124,11 @@ cutoff = int(len(hype_messages)*0.75)
 
 train_messages = hype_messages[:cutoff] + normal_messages[:cutoff]
 test_messages = hype_messages[cutoff:] + normal_messages[cutoff:]
-print len(train_messages), len(test_messages)
+#print len(train_messages), len(test_messages)
 
 training_set = nltk.classify.util.apply_features(wordFeatures,train_messages)
 classifier = nltk.NaiveBayesClassifier.train(training_set)
-print classifier.show_most_informative_features()
+#print classifier.show_most_informative_features()
 
 test_set = nltk.classify.util.apply_features(wordFeatures, test_messages)
 #print nltk.classify.util.accuracy(classifier, test_set)
@@ -133,27 +149,53 @@ s.send("JOIN {}\r\n".format(CHAN).encode("utf-8"))
 
 CHAT_MSG=re.compile(r":\w+!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :")
 
-#timestamp = time.strftime('%d/%m%Y-%M-%S')
-#filename = 'chat4.txt' 
-#f = open(filename, 'a')
+tdeltas = deque([])
+
+FMT = '%Y-%m-%d %H:%M:%S:%f'
+
 
 while True:
-    #response = s.recv(1024).decode("utf-8")
-    response = s.recv(1024)
+    try:
+        prevTime = currentTime
+    except:
+        prevTime = datetime.now().strftime(FMT)
+
+    response = s.recv(1024)#.decode("utf-8")
+    
     if response == "PING :tmi.twitch.tv\r\n":
         s.send("PONG :tmi.twitch.tv\r\n".encode("utf-8"))
     else:
         message = CHAT_MSG.sub('', response)
         newMessage = [] 
         for part in message.split():
-            if part in emotes:
-                #emote found
+            if part in emotes: #emote found
                 continue
             newMessage.append(part)
-        message = ' '.join(newMessage) + '\n'
-        print(message), classifier.prob_classify(wordFeatures(message.split())).prob('hype')
-        #f.write(message+'\n')
+        message = ' '.join(newMessage)
+        #message += '\n'
+        
+        #print(message), classifier.prob_classify(wordFeatures(message.split())).prob('hype')
+        print(message)
 
+        #print datetime.now().strftime(FMT)
+        currentTime = datetime.now().strftime(FMT)
+        
+
+        tdelta = (datetime.strptime(currentTime, FMT) -  
+                  datetime.strptime(prevTime, FMT)
+                  )
+
+        appendTdelta(tdelta, tdeltas, 20)
+        
+        if len(tdeltas) >= 20:
+            print 'AVG', calcAvgTdelta(tdeltas) 
+
+        print '\n'
+        #rateArray.append(datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f')) 
+        #findAverage()
+
+        #f.write(message+'\n')
+        
 
 
 
