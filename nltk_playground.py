@@ -10,8 +10,6 @@ def get_word_features(wordlist):
   word_features = wordlist.keys()
   return word_features
 
-
-
 def extract_features(document):
   document_words = set(document)
   features = {}
@@ -31,15 +29,16 @@ poscutoff = len(posfeats)*3/4
 trainfeats = negfeats[:negcutoff] + posfeats[:poscutoff]
 testfeats = negfeats[negcutoff:] + posfeats[poscutoff:]
 
-#print 'train on %d instances, test on %d instances' % (len(trainfeats), len(testfeats))
+print 'train on %d instances, test on %d instances' % (len(trainfeats), len(testfeats))
     
 classifier = NaiveBayesClassifier.train(trainfeats)
-#print 'accuracy:', nltk.classify.util.accuracy(classifier, testfeats)
-#classifier.show_most_informative_features()
+print 'accuracy:', nltk.classify.util.accuracy(classifier, testfeats)
+classifier.show_most_informative_features()
+
 print 'here'
-words = ['bad']
-words1 = ['good']
-words2 = ['decent']
+words = ['magnificent']
+words1 = ['2jrf2']
+words2 = ['idiotic']
 words3 = ['love']
 words4 = ['serious']
 
@@ -49,11 +48,12 @@ sentence2 =  word_feats(words2)
 sentence3 =  word_feats(words3)
 sentence4 =  word_feats(words4)
 
-print classifier.classify(sentence)
-print classifier.classify(sentence1)
-print classifier.classify(sentence2)
-print classifier.classify(sentence3)
-print classifier.classify(sentence4)
+print classifier.prob_classify(sentence).prob('pos')
+print classifier.prob_classify(sentence).prob('pos')
+print classifier.prob_classify(sentence1).prob('pos')
+print classifier.prob_classify(sentence2).prob('pos')
+print classifier.prob_classify(sentence3).prob('pos')
+print classifier.prob_classify(sentence4).prob('pos')
 
 
 
