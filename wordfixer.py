@@ -1,47 +1,30 @@
-word = [
-    "OMGOMGOMGOMGOMGOMG",
-    "LOLOLLLOLOOL",
-    "LOOOOOOOL",
-    "WTFFF",
-    "WTFF",
-    "HOLYSHIT",
-    "FUUUUUUUUCK",
-    "HAHAHAHAHA",
-    "AHAHA",
-    "WOWOWOW",
-    "COOL"
-]
 
-"OMG"
-"LOL"
-"LOL"
+class WordFixer:
 
-"LOLOL"
-"HAHAHA"
-"WOWOW"
-"OMGOMGOMG"
+    def removeRepeatedLetters(self, word):
+        letters = ""
+        for i in range(len(word) - 1):
+            if word[i] != word[i + 1]:
+                letters += word[i]
 
+        return letters + word[-1]
 
-def removeRepeatedLetters(word):
-    letters = ""
-    for i in range(len(word) - 1):
-        if word[i] != word[i + 1]:
-            letters += word[i]
+    def removeRepeatedWords(self, word):
+        letters = ""
+        for letter in word:
+            letters += letter
+            if len(letters) > 2 and self.removeRepeatedLetters(letters + letters) \
+                                 in self.removeRepeatedLetters(word + word):
+               return self.removeRepeatedLetters(letters + word[-1])
 
-    return letters + word[-1]
+    def fixWord(self, word):
+        if len(word) <= 4:
+            return word
+        removedLetters = self.removeRepeatedLetters(word.lower())
+        removedWords = self.removeRepeatedWords(removedLetters)
 
-def removeRepeatedWords(word):
-    letters = ""
-    for letter in word:
-        letters += letter
-        if len(letters) > 2 and removeRepeatedLetters(letters + letters) \
-                             in removeRepeatedLetters(word + word):
-           return removeRepeatedLetters(letters + word[-1])
-
-def fixWord(word):
-    removedLetters = removeRepeatedLetters(word)
-    removedWords = removeRepeatedWords(removedLetters)
-    return removedWords
+        return removedWords
 
 
-print fixWord("")
+#wordFix = wordFixer()
+#print wordFixer.fixWord(wordFix, "LOLOLLLLL")
