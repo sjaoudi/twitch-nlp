@@ -1,5 +1,5 @@
 
-class WordFixer:
+class WordFixer(object):
 
     def removeRepeatedLetters(self, word):
         letters = ""
@@ -20,10 +20,21 @@ class WordFixer:
     def fixWord(self, word):
         if len(word) <= 4:
             return word
-        removedLetters = self.removeRepeatedLetters(word.lower())
-        removedWords = self.removeRepeatedWords(removedLetters)
+        repeatedLettersRemoved = self.removeRepeatedLetters(word.lower())
+        repeatedWordsRemoved = self.removeRepeatedWords(removedLetters)
 
-        return removedWords
+        return {'fixed_word' : repeatedWordsRemoved,
+                'removed_letters' : len(word) - len(repeatedLettersRemoved)
+               }
+
+    def uniqueWords(self, message):
+        # Determine uniqueness of a message (e.g. spammed words or emotes)
+        pass
+
+
+    def messageCase(self, message):
+        # Determine the ratio of upper / lowercase words in a message
+        pass
 
 
 #wordFix = wordFixer()

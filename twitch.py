@@ -2,12 +2,12 @@ import socket, string, time, nltk, re, requests, json, pprint, time
 from datetime import datetime
 from collections import deque
 
-from nltkFuncs import NltkFuncs
-from timingFuncs import TimingFuncs
-from twitchAPIFuncs import TwitchAPIFuncs
+from classifiers import HypeClassifier
+from timing import TimingFuncs
+from twitchAPI import TwitchAPIFuncs
 from wordFixer import WordFixer
 
-nlp = NltkFuncs()
+hype = HypeClassifier()
 timing = TimingFuncs()
 twitch = TwitchAPIFuncs()
 wordFix = WordFixer()
@@ -23,7 +23,7 @@ channel = "c9sneaky"
 CHAN = '#%s' % channel
 twitch.checkIfLive(channel)
 
-hype_classifier = nlp.trainHypeClassifier()
+hype_classifier = hype.classifier
 emotes = twitch.getEmoticons()
 
 s = socket.socket()
@@ -32,7 +32,7 @@ s.send("PASS {}\r\n".format(PASS).encode("utf-8"))
 s.send("NICK {}\r\n".format(NICK).encode("utf-8"))
 s.send("JOIN {}\r\n".format(CHAN).encode("utf-8"))
 
-CHAT_MSG=re.compile(r":\w+!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :")
+CHAT_MSG = re.compile(r":\w+!\w+@\w+\.tmi\.twitch\.tv PRIVMSG #\w+ :")
 
 tdeltas = deque([])
 
@@ -50,14 +50,18 @@ while True:
         s.send("PONG :tmi.twitch.tv\r\n".encode("utf-8"))
     else:
         message = CHAT_MSG.sub('', response)
+        emotesCount = 0
+
         newMessage = []
         for part in message.split():
-            if part in emotes: #emote found
-                continue
+            if part in emotes: # emote found
+                emotesCount += 1
+                # continue
+                # pass
             newMessage.append(part)
         message = ' '.join(newMessage)
 
-        print(message), hype_classifier.prob_classify(wordFeatures(message.split())).prob('hype')
+        print(message), hype_classifier.prob_classify(hype.hypeFeatures(message.split())).prob('hype')
         #print(message)
 
         #print datetime.now().strftime(FMT)
@@ -70,6 +74,11 @@ while True:
 
         if len(tdeltas) >= 20:
             print 'AVG', timing.calcAvgTdelta(tdeltas)
+
+        if message.split():
+            # emotesToWords = float(emotesCount/len(message.split()))
+            # print "emotesToWords: ", emotesToWords
+            print emotesCount
 
         print '\n'
         #rateArray.append(datetime.now().strftime('%Y-%m-%d %H:%M:%S:%f'))
